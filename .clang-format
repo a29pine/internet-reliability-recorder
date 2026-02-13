@@ -5,5 +5,5 @@ DerivePointerAlignment: false
 PointerAlignment: Left
 AllowShortFunctionsOnASingleLine: Empty
 SortIncludes: true
-Standard: Cpp17
+Standard: Latest
 SpacesInParentheses: false
