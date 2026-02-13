@@ -193,7 +193,49 @@
             <h2>Architecture</h2>
             <p>Single epoll reactor with timerfd-driven scheduling. Probes emit events via an EventBus to a JSONL sink; reports are generated offline from the bundle.</p>
             <div style="text-align:center;">
-              <img src="https://mermaid.ink/img/flowchart%20LR%0A%20%20%20%20CLI--%3EReactor%0A%20%20%20%20Timerfd--%3EReactor%0A%20%20%20%20Reactor--%3EProbes%0A%20%20%20%20Probes--%3EEventBus%0A%20%20%20%20Netlink--%3EEventBus%0A%20%20%20%20EventBus--%3EStore%5BJSONL%20Store%5D%0A%20%20%20%20Store--%3EReportGen" alt="Module diagram" style="max-width:100%; border:1px solid var(--border); border-radius:12px; background:var(--panel); padding:8px;" loading="lazy">
+              <svg role="img" aria-label="Module diagram" viewBox="0 0 760 260" style="max-width:100%; border:1px solid var(--border); border-radius:12px; background:var(--panel);">
+                <defs>
+                  <style>
+                    .node { fill: #111822; stroke: #4fd1c5; stroke-width: 1.2; rx: 10; ry: 10; }
+                    .text { fill: #e8eef5; font-family: 'Inter', 'Segoe UI', sans-serif; font-size: 14px; }
+                    .arrow { stroke: #8cc8ff; stroke-width: 1.4; marker-end: url(#arrowhead); fill: none; }
+                  </style>
+                  <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto" fill="#8cc8ff">
+                    <polygon points="0 0, 8 3, 0 6"></polygon>
+                  </marker>
+                </defs>
+                <rect x="30" y="30" width="110" height="40" class="node"></rect>
+                <text x="85" y="55" text-anchor="middle" dominant-baseline="middle" class="text">CLI</text>
+
+                <rect x="200" y="30" width="140" height="40" class="node"></rect>
+                <text x="270" y="55" text-anchor="middle" dominant-baseline="middle" class="text">Reactor (epoll)</text>
+
+                <rect x="200" y="100" width="140" height="40" class="node"></rect>
+                <text x="270" y="125" text-anchor="middle" dominant-baseline="middle" class="text">Timerfd scheduler</text>
+
+                <rect x="400" y="30" width="120" height="40" class="node"></rect>
+                <text x="460" y="55" text-anchor="middle" dominant-baseline="middle" class="text">Probes</text>
+
+                <rect x="400" y="100" width="120" height="40" class="node"></rect>
+                <text x="460" y="125" text-anchor="middle" dominant-baseline="middle" class="text">Netlink monitor</text>
+
+                <rect x="570" y="30" width="130" height="40" class="node"></rect>
+                <text x="635" y="55" text-anchor="middle" dominant-baseline="middle" class="text">EventBus</text>
+
+                <rect x="570" y="100" width="130" height="40" class="node"></rect>
+                <text x="635" y="125" text-anchor="middle" dominant-baseline="middle" class="text">JSONL Store</text>
+
+                <rect x="570" y="170" width="130" height="40" class="node"></rect>
+                <text x="635" y="195" text-anchor="middle" dominant-baseline="middle" class="text">ReportGen</text>
+
+                <line x1="140" y1="50" x2="200" y2="50" class="arrow"></line>
+                <line x1="270" y1="70" x2="270" y2="100" class="arrow"></line>
+                <line x1="340" y1="50" x2="400" y2="50" class="arrow"></line>
+                <line x1="340" y1="120" x2="400" y2="120" class="arrow"></line>
+                <line x1="520" y1="50" x2="570" y2="50" class="arrow"></line>
+                <line x1="520" y1="120" x2="570" y2="120" class="arrow"></line>
+                <line x1="635" y1="140" x2="635" y2="170" class="arrow"></line>
+              </svg>
             </div>
           </section>
 
