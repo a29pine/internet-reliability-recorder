@@ -1,0 +1,49 @@
+# Build artifacts
+build/
+build-*/
+dist/
+out/
+CMakeFiles/
+CMakeCache.txt
+Testing/
+compile_commands.json
+install_manifest.txt
+
+# Binaries and objects
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+*.app
+*.pdb
+*.lib
+*.exp
+
+# Generated files
+*.log
+*.tmp
+*.swp
+*~
+*.bak
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.code-workspace
+
+# Python helper caches
+__pycache__/
+*.pyc
+
+# Coverage
+*.gcda
+*.gcno
+*.gcov

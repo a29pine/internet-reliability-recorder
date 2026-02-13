@@ -1,0 +1,22 @@
+[Unit]
+Description=Internet Reliability Recorder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/irr run --duration 0 --out /var/lib/irr --profile home
+Restart=on-failure
+User=irr
+Group=irr
+AmbientCapabilities=CAP_NET_RAW
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+RestrictSUIDSGID=yes
+LockPersonality=yes
+MemoryDenyWriteExecute=yes
+
+[Install]
+WantedBy=multi-user.target
