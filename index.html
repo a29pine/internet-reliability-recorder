@@ -126,10 +126,14 @@
         <li><a href="#quickstart">Quickstart</a></li>
         <li><a href="#downloads">Downloads</a></li>
         <li><a href="#capabilities">What it measures</a></li>
+        <li><a href="#architecture">Architecture</a></li>
+        <li><a href="#metrics">Metrics</a></li>
         <li><a href="#usage">CLI usage</a></li>
         <li><a href="#report">Report</a></li>
         <li><a href="#targets">Defaults</a></li>
         <li><a href="#diagnostics">Diagnostics</a></li>
+        <li><a href="#raspi">Raspberry Pi</a></li>
+        <li><a href="#packaging">Packaging</a></li>
         <li><a href="#versioning">Versioning</a></li>
         <li><a href="#issues">Issues</a></li>
       </ul>
@@ -179,10 +183,32 @@
               <li><a href="https://github.com/a29pine/internet-reliability-recorder/blob/main/README.md" target="_blank" rel="noopener">README</a></li>
               <li><a href="https://github.com/a29pine/internet-reliability-recorder/blob/main/docs/raspi.md" target="_blank" rel="noopener">Router/SBC notes</a></li>
               <li><a href="https://github.com/a29pine/internet-reliability-recorder/blob/main/docs/sample-report/report.html" target="_blank" rel="noopener">Sample report</a></li>
+              <li><a href="https://github.com/a29pine/internet-reliability-recorder/blob/main/docs/architecture.md" target="_blank" rel="noopener">Architecture doc</a></li>
             </ul>
           </div>
         </div>
       </section>
+
+          <section class="card" id="architecture">
+            <h2>Architecture</h2>
+            <p>Single epoll reactor with timerfd-driven scheduling. Probes emit events via an EventBus to a JSONL sink; reports are generated offline from the bundle.</p>
+            <div style="text-align:center;">
+              <img src="https://mermaid.ink/img/flowchart%20LR%0A%20%20%20%20CLI--%3EReactor%0A%20%20%20%20Timerfd--%3EReactor%0A%20%20%20%20Reactor--%3EProbes%0A%20%20%20%20Probes--%3EEventBus%0A%20%20%20%20Netlink--%3EEventBus%0A%20%20%20%20EventBus--%3EStore%5BJSONL%20Store%5D%0A%20%20%20%20Store--%3EReportGen" alt="Module diagram" style="max-width:100%; border:1px solid var(--border); border-radius:12px; background:var(--panel); padding:8px;" loading="lazy">
+            </div>
+          </section>
+
+          <section class="card" id="metrics">
+            <h2>Metrics + Events</h2>
+            <ul>
+              <li><code>probe.tcp.connect</code>: connect RTT ms; error category from SO_ERROR.</li>
+              <li><code>probe.dns.result|timeout</code>: UDP query RTT, RCODE on error, TCP fallback outcome.</li>
+              <li><code>probe.icmp.rtt|timeout</code>: echo RTT (requires CAP_NET_RAW).</li>
+              <li><code>probe.pmtu.result</code>: discovered MTU bytes or <code>emsgsize</code> when constrained.</li>
+              <li><code>sys.netlink.route_change|link_change</code>: link/route churn markers.</li>
+              <li>Aggregates: p50/p95/p99 via linear interpolation; loss% = failures / total.</li>
+            </ul>
+            <p style="color:var(--muted);">Limitations: ICMP gated on CAP_NET_RAW; DNS uses first resolver; PMTU probes are lightweight and may be rate-limited.</p>
+          </section>
 
       <section class="card" id="capabilities">
         <h2>What It Measures</h2>
@@ -234,6 +260,25 @@
           <li><code>irr doctor</code> checks <code>/etc/resolv.conf</code> and <code>CAP_NET_RAW</code> availability.</li>
           <li>Netlink monitor stamps link/route changes for correlation.</li>
           <li>JSONL logging retains timestamps, target meta, and error categories.</li>
+        </ul>
+      </section>
+
+      <section class="card" id="raspi">
+        <h2>Raspberry Pi / SBC notes</h2>
+        <ul>
+          <li>Build natively: <code>cmake -S . -B build -DCMAKE_BUILD_TYPE=Release &amp;&amp; cmake --build build</code>.</li>
+          <li>Use lightweight desktops or headless; keep bundles on tmpfs to reduce SD wear.</li>
+          <li>ICMP probe: <code>sudo setcap cap_net_raw+ep ./irr</code>.</li>
+          <li>For continuous runs, use the systemd unit (packaging/systemd/irr.service) and store bundles on ext4.</li>
+        </ul>
+      </section>
+
+      <section class="card" id="packaging">
+        <h2>Packaging</h2>
+        <ul>
+          <li>OpenWrt: feed/Makefile under <code>packaging/openwrt</code>; build IPKs with the provided recipes.</li>
+          <li>Systemd: sample unit in <code>packaging/systemd/irr.service</code> (set ExecStart to built binary path).</li>
+          <li>CI: format (clang-format), lint (clang-tidy), Debug/Release build + ctest.</li>
         </ul>
       </section>
 
