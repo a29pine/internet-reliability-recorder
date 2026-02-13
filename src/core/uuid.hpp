@@ -15,11 +15,15 @@ inline std::string uuid4() {
             v <<= 4;
         }
     };
-    write(a, 8); out[idx++]='-';
-    write(a<<32,4); out[idx++]='-';
-    write(b,4); out[idx++]='-';
-    write(b<<16,4); out[idx++]='-';
-    write(b<<32,12);
+    write(a, 8);
+    out[idx++] = '-';
+    write(a << 32, 4);
+    out[idx++] = '-';
+    write(b, 4);
+    out[idx++] = '-';
+    write(b << 16, 4);
+    out[idx++] = '-';
+    write(b << 32, 12);
     return out;
 }
 }  // namespace irr

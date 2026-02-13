@@ -1,12 +1,17 @@
 #include "scheduler_timerfd.hpp"
+
 #include <sys/epoll.h>
 #include <sys/timerfd.h>
+
 #include <cstring>
+
 #include "logger.hpp"
 
 namespace irr {
 TimerScheduler::TimerScheduler() = default;
-TimerScheduler::~TimerScheduler() { stop(); }
+TimerScheduler::~TimerScheduler() {
+    stop();
+}
 
 bool TimerScheduler::start(Reactor& r, int interval_ms, const std::function<void()>& cb) {
     cb_ = cb;

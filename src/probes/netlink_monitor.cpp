@@ -1,15 +1,19 @@
 #include "netlink_monitor.hpp"
+
 #include <linux/netlink.h>
 #include <linux/rtnetlink.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #include <cstring>
+
 #include "../core/logger.hpp"
 #include "../core/time_utils.hpp"
 
 namespace irr {
-NetlinkMonitor::NetlinkMonitor(EventBus& bus, const std::string& run_id) : bus_(bus), run_id_(run_id) {}
+NetlinkMonitor::NetlinkMonitor(EventBus& bus, const std::string& run_id)
+    : bus_(bus), run_id_(run_id) {}
 
 bool NetlinkMonitor::start(Reactor& r) {
     fd_ = ::socket(AF_NETLINK, SOCK_RAW | SOCK_NONBLOCK, NETLINK_ROUTE);
@@ -41,7 +45,8 @@ void NetlinkMonitor::handle(uint32_t) {
     char buf[4096];
     ssize_t len = ::recv(fd_, buf, sizeof(buf), 0);
     if (len <= 0) return;
-    for (nlmsghdr* nh = reinterpret_cast<nlmsghdr*>(buf); NLMSG_OK(nh, len); nh = NLMSG_NEXT(nh, len)) {
+    for (nlmsghdr* nh = reinterpret_cast<nlmsghdr*>(buf); NLMSG_OK(nh, len);
+         nh = NLMSG_NEXT(nh, len)) {
         Event ev;
         ev.run_id = run_id_;
         ev.ts_monotonic_ns = monotonic_ns();

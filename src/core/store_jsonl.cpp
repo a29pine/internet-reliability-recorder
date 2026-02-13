@@ -1,6 +1,8 @@
 #include "store_jsonl.hpp"
+
 #include <iomanip>
 #include <sstream>
+
 #include "logger.hpp"
 
 namespace irr {
@@ -19,12 +21,24 @@ std::string JsonlStore::escape(const std::string& s) {
     out.reserve(s.size());
     for (char c : s) {
         switch (c) {
-            case '"': out += "\\\""; break;
-            case '\\': out += "\\\\"; break;
-            case '\n': out += "\\n"; break;
-            case '\r': out += "\\r"; break;
-            case '\t': out += "\\t"; break;
-            default: out += c; break;
+            case '"':
+                out += "\\\"";
+                break;
+            case '\\':
+                out += "\\\\";
+                break;
+            case '\n':
+                out += "\\n";
+                break;
+            case '\r':
+                out += "\\r";
+                break;
+            case '\t':
+                out += "\\t";
+                break;
+            default:
+                out += c;
+                break;
         }
     }
     return out;
@@ -40,11 +54,14 @@ void JsonlStore::write_json(const Event& ev) {
     out_ << "\"target\":{\"name\":\"" << escape(ev.target_name) << "\",";
     out_ << "\"ip\":\"" << escape(ev.target_ip) << "\",";
     out_ << "\"family\":\"" << escape(ev.target_family) << "\"},";
-    out_ << "\"probe\":{\"interval_ms\":" << ev.interval_ms << ",\"timeout_ms\":" << ev.timeout_ms << "},";
+    out_ << "\"probe\":{\"interval_ms\":" << ev.interval_ms << ",\"timeout_ms\":" << ev.timeout_ms
+         << "},";
     out_ << "\"result\":{\"ok\":" << (ev.ok ? "true" : "false") << ",\"metric_ms\":" << ev.metric_ms
          << ",\"error_category\":\"" << escape(ev.error_category) << "\"}";
     out_ << "}\n";
 }
 
-void JsonlStore::on_event(const Event& ev) { write_json(ev); }
+void JsonlStore::on_event(const Event& ev) {
+    write_json(ev);
+}
 }  // namespace irr

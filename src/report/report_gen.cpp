@@ -1,4 +1,5 @@
 #include "report_gen.hpp"
+
 #include <algorithm>
 #include <cctype>
 #include <fstream>
@@ -6,6 +7,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "../core/logger.hpp"
 #include "../util/percentile.hpp"
 
@@ -25,12 +27,24 @@ std::string html_escape(const std::string& in) {
     out.reserve(in.size());
     for (char c : in) {
         switch (c) {
-            case '&': out += "&amp;"; break;
-            case '<': out += "&lt;"; break;
-            case '>': out += "&gt;"; break;
-            case '"': out += "&quot;"; break;
-            case '\'': out += "&#39;"; break;
-            default: out += c; break;
+            case '&':
+                out += "&amp;";
+                break;
+            case '<':
+                out += "&lt;";
+                break;
+            case '>':
+                out += "&gt;";
+                break;
+            case '"':
+                out += "&quot;";
+                break;
+            case '\'':
+                out += "&#39;";
+                break;
+            default:
+                out += c;
+                break;
         }
     }
     return out;
@@ -44,8 +58,10 @@ bool extract_object_substr(const std::string& line, const std::string& key, std:
     if (pos == std::string::npos) return false;
     int depth = 0;
     for (size_t i = pos; i < line.size(); ++i) {
-        if (line[i] == '{') depth++;
-        else if (line[i] == '}') depth--;
+        if (line[i] == '{')
+            depth++;
+        else if (line[i] == '}')
+            depth--;
         if (depth == 0) {
             out = line.substr(pos, i - pos + 1);
             return true;
@@ -75,7 +91,9 @@ bool extract_double(const std::string& line, const std::string& key, double& out
     if (pos == std::string::npos) return false;
     pos += key.size() + 3;
     size_t end = pos;
-    while (end < line.size() && (std::isdigit(static_cast<unsigned char>(line[end])) || line[end] == '.' || line[end] == '-')) ++end;
+    while (end < line.size() && (std::isdigit(static_cast<unsigned char>(line[end])) ||
+                                 line[end] == '.' || line[end] == '-'))
+        ++end;
     try {
         out = std::stod(line.substr(pos, end - pos));
         return true;
@@ -119,9 +137,10 @@ std::string build_svg_polyline(const std::vector<double>& vals, double width, do
     }
     return oss.str();
 }
-}
+}  // namespace
 
-bool generate_report(const std::string& bundle_in, const std::string& out_html, ReportStats& stats) {
+bool generate_report(const std::string& bundle_in, const std::string& out_html,
+                     ReportStats& stats) {
     std::ifstream in(bundle_in + "/events.jsonl");
     if (!in.is_open()) {
         log(LogLevel::ERROR, "Cannot open events.jsonl");
@@ -134,8 +153,9 @@ bool generate_report(const std::string& bundle_in, const std::string& out_html, 
     while (std::getline(in, line)) {
         ParsedEventLine parsed;
         if (!parse_event_line(line, parsed)) continue;
-        if (parsed.type != "probe.tcp.connect" && parsed.type != "probe.dns.result" && parsed.type != "probe.dns.timeout" &&
-            parsed.type != "probe.icmp.rtt" && parsed.type != "probe.icmp.timeout")
+        if (parsed.type != "probe.tcp.connect" && parsed.type != "probe.dns.result" &&
+            parsed.type != "probe.dns.timeout" && parsed.type != "probe.icmp.rtt" &&
+            parsed.type != "probe.icmp.timeout")
             continue;
         ++total;
         if (parsed.has_ok && parsed.ok) {
@@ -161,7 +181,11 @@ bool generate_report(const std::string& bundle_in, const std::string& out_html, 
 
     out << "<!doctype html><html><head><meta charset=\"utf-8\"><title>IRR Report</title>";
     out << "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">";
-    out << "<style>body{font-family:Arial;margin:24px;} .card{display:inline-block;margin:8px;padding:12px;border:1px solid #ddd;border-radius:8px;} .fail{color:#b00;} table{border-collapse:collapse;} td,th{border:1px solid #ddd;padding:6px;} svg{border:1px solid #ddd;border-radius:6px;}</style>";
+    out << "<style>body{font-family:Arial;margin:24px;} "
+           ".card{display:inline-block;margin:8px;padding:12px;border:1px solid "
+           "#ddd;border-radius:8px;} .fail{color:#b00;} table{border-collapse:collapse;} "
+           "td,th{border:1px solid #ddd;padding:6px;} svg{border:1px solid "
+           "#ddd;border-radius:6px;}</style>";
     out << "</head><body>";
     out << "<h1>Internet Reliability Recorder</h1>";
     out << "<p>Summary for bundle: " << html_escape(bundle_in) << "</p>";
@@ -169,21 +193,27 @@ bool generate_report(const std::string& bundle_in, const std::string& out_html, 
     out << "<div class='card'>p95: " << stats.p95_ms << " ms</div>";
     out << "<div class='card'>p99: " << stats.p99_ms << " ms</div>";
     out << "<div class='card'>loss: " << stats.loss_pct << " %</div>";
-    out << "<div class='card " << (stats.failures ? "fail" : "") << "'>failures: " << stats.failures << "</div>";
+    out << "<div class='card " << (stats.failures ? "fail" : "") << "'>failures: " << stats.failures
+        << "</div>";
 
-    out << "<h2>Per-target breakdown</h2><table><tr><th>Target</th><th>p50</th><th>p95</th><th>p99</th><th>failures</th></tr>";
+    out << "<h2>Per-target "
+           "breakdown</h2><table><tr><th>Target</th><th>p50</th><th>p95</th><th>p99</"
+           "th><th>failures</th></tr>";
     for (const auto& kv : stats.per_target) {
         double p50 = percentile(kv.second, 50);
         double p95 = percentile(kv.second, 95);
         double p99 = percentile(kv.second, 99);
         size_t fails = stats.per_target_fail[kv.first];
-        out << "<tr><td>" << html_escape(kv.first) << "</td><td>" << p50 << "</td><td>" << p95 << "</td><td>" << p99 << "</td><td>" << fails << "</td></tr>";
+        out << "<tr><td>" << html_escape(kv.first) << "</td><td>" << p50 << "</td><td>" << p95
+            << "</td><td>" << p99 << "</td><td>" << fails << "</td></tr>";
     }
     out << "</table>";
 
     out << "<h2>Timeline (TCP connect)</h2>";
     if (!poly.empty()) {
-        out << "<svg width='640' height='200'><polyline fill='none' stroke='#0a74da' stroke-width='2' points='" << poly << "' /></svg>";
+        out << "<svg width='640' height='200'><polyline fill='none' stroke='#0a74da' "
+               "stroke-width='2' points='"
+            << poly << "' /></svg>";
     } else {
         out << "<p>No data</p>";
     }
@@ -192,7 +222,8 @@ bool generate_report(const std::string& bundle_in, const std::string& out_html, 
     if (stats.loss_pct > 5.0) out << "<li>High loss observed.</li>";
     if (stats.p99_ms > 500) out << "<li>Long tail latency spikes.</li>";
     if (stats.failures == 0 && stats.p95_ms < 150) out << "<li>Connectivity looks healthy.</li>";
-    if (stats.per_target_fail.size() > 0) out << "<li>Per-target failures present; inspect DNS and PMTU events.</li>";
+    if (stats.per_target_fail.size() > 0)
+        out << "<li>Per-target failures present; inspect DNS and PMTU events.</li>";
     out << "</ul>";
 
     out << "</body></html>";

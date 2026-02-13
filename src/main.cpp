@@ -1,10 +1,12 @@
+#include <netinet/in.h>
+#include <sys/socket.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <thread>
-#include <sys/socket.h>
-#include <netinet/in.h>
+
 #include "core/event_bus.hpp"
 #include "core/logger.hpp"
 #include "core/reactor.hpp"
@@ -23,7 +25,8 @@ using namespace irr;
 
 static void write_manifest(const std::string& path, const std::string& run_id, int duration_s,
                            const std::string& profile, const std::vector<TcpTarget>& targets,
-                           const std::vector<DnsTarget>& dns_targets, const std::vector<PmtuTarget>& pmtu_targets,
+                           const std::vector<DnsTarget>& dns_targets,
+                           const std::vector<PmtuTarget>& pmtu_targets,
                            const std::vector<IcmpTarget>& icmp_targets, int interval_ms) {
     std::ofstream out(path + "/run.json");
     out << "{\n";
@@ -42,16 +45,16 @@ static void write_manifest(const std::string& path, const std::string& run_id, i
     out << "  ]\n";
     out << "  ,\"dns_targets\": [\n";
     for (size_t i = 0; i < dns_targets.size(); ++i) {
-        out << "    {\"name\":\"" << dns_targets[i].name << "\",\"qname\":\"" << dns_targets[i].qname
-            << "\",\"interval_ms\":" << dns_targets[i].interval_ms << "}";
+        out << "    {\"name\":\"" << dns_targets[i].name << "\",\"qname\":\""
+            << dns_targets[i].qname << "\",\"interval_ms\":" << dns_targets[i].interval_ms << "}";
         if (i + 1 < dns_targets.size()) out << ",";
         out << "\n";
     }
     out << "  ]\n";
     out << "  ,\"pmtu_targets\": [\n";
     for (size_t i = 0; i < pmtu_targets.size(); ++i) {
-        out << "    {\"name\":\"" << pmtu_targets[i].name << "\",\"host\":\"" << pmtu_targets[i].host
-            << "\",\"port\":" << pmtu_targets[i].port << "}";
+        out << "    {\"name\":\"" << pmtu_targets[i].name << "\",\"host\":\""
+            << pmtu_targets[i].host << "\",\"port\":" << pmtu_targets[i].port << "}";
         if (i + 1 < pmtu_targets.size()) out << ",";
         out << "\n";
     }
@@ -69,10 +72,13 @@ static void write_manifest(const std::string& path, const std::string& run_id, i
 
 static int cmd_doctor() {
     std::cout << "Doctor checks:\n";
-    if (std::filesystem::exists("/etc/resolv.conf")) std::cout << " - resolv.conf: ok\n";
-    else std::cout << " - resolv.conf missing\n";
+    if (std::filesystem::exists("/etc/resolv.conf"))
+        std::cout << " - resolv.conf: ok\n";
+    else
+        std::cout << " - resolv.conf missing\n";
     int fd = ::socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
-    if (fd < 0) std::cout << " - ICMP raw: unavailable (need CAP_NET_RAW or root)\n";
+    if (fd < 0)
+        std::cout << " - ICMP raw: unavailable (need CAP_NET_RAW or root)\n";
     else {
         ::close(fd);
         std::cout << " - ICMP raw: available\n";
@@ -83,8 +89,7 @@ static int cmd_doctor() {
 
 static std::vector<TcpTarget> default_targets(const std::string& profile) {
     if (profile == "home") {
-        return {{"cloudflare", "1.1.1.1", 443, 1000, 2000},
-                {"google", "8.8.8.8", 443, 1000, 2000}};
+        return {{"cloudflare", "1.1.1.1", 443, 1000, 2000}, {"google", "8.8.8.8", 443, 1000, 2000}};
     }
     return {{"quad9", "9.9.9.9", 443, 1000, 2000}};
 }
@@ -99,7 +104,8 @@ static std::vector<PmtuTarget> default_pmtu_targets(const std::vector<TcpTarget>
     return out;
 }
 
-static std::vector<IcmpTarget> default_icmp_targets(const std::vector<TcpTarget>& tcp, int interval_ms) {
+static std::vector<IcmpTarget> default_icmp_targets(const std::vector<TcpTarget>& tcp,
+                                                    int interval_ms) {
     std::vector<IcmpTarget> out;
     for (const auto& t : tcp) out.push_back({t.name, t.host, interval_ms, 2000});
     return out;
@@ -119,15 +125,18 @@ static std::string first_resolver() {
     return "1.1.1.1";
 }
 
-static int cmd_run_parsed(int duration_s, const std::string& out_dir, const std::string& profile, int interval_ms,
-                          bool enable_dns, bool enable_icmp, bool enable_pmtu, bool enable_netlink) {
+static int cmd_run_parsed(int duration_s, const std::string& out_dir, const std::string& profile,
+                          int interval_ms, bool enable_dns, bool enable_icmp, bool enable_pmtu,
+                          bool enable_netlink) {
     std::filesystem::create_directories(out_dir);
     std::string run_id = uuid4();
     auto targets = default_targets(profile);
     auto dns_targets = enable_dns ? default_dns_targets(interval_ms) : std::vector<DnsTarget>{};
     auto pmtu_targets = enable_pmtu ? default_pmtu_targets(targets) : std::vector<PmtuTarget>{};
-    auto icmp_targets = enable_icmp ? default_icmp_targets(targets, interval_ms) : std::vector<IcmpTarget>{};
-    write_manifest(out_dir, run_id, duration_s, profile, targets, dns_targets, pmtu_targets, icmp_targets, interval_ms);
+    auto icmp_targets =
+        enable_icmp ? default_icmp_targets(targets, interval_ms) : std::vector<IcmpTarget>{};
+    write_manifest(out_dir, run_id, duration_s, profile, targets, dns_targets, pmtu_targets,
+                   icmp_targets, interval_ms);
 
     EventBus bus;
     JsonlStore store(out_dir + "/events.jsonl");
@@ -178,7 +187,8 @@ static int cmd_report(const std::string& in_dir, const std::string& out_path) {
 
 static void print_usage() {
     std::cerr << "Usage: irr <run|report|doctor> [options]\n"
-              << "  run    --duration <sec> --out <dir> --profile <name> --interval <ms> [--no-dns] [--no-icmp] [--no-pmtu] [--no-netlink]\n"
+              << "  run    --duration <sec> --out <dir> --profile <name> --interval <ms> "
+                 "[--no-dns] [--no-icmp] [--no-pmtu] [--no-netlink]\n"
               << "  report --in <bundle> --out <report.html>\n"
               << "  doctor (no args)\n";
 }
@@ -220,15 +230,18 @@ int main(int argc, char** argv) {
                 enable_netlink = false;
             }
         }
-        return cmd_run_parsed(duration_s, out_dir, profile, interval_ms, enable_dns, enable_icmp, enable_pmtu, enable_netlink);
+        return cmd_run_parsed(duration_s, out_dir, profile, interval_ms, enable_dns, enable_icmp,
+                              enable_pmtu, enable_netlink);
     }
     if (cmd == "report") {
         std::string in_dir = "./bundle";
         std::string out = "./bundle/report.html";
         for (int i = 2; i < argc; ++i) {
             std::string a = argv[i];
-            if (a == "--in" && i + 1 < argc) in_dir = argv[++i];
-            else if (a == "--out" && i + 1 < argc) out = argv[++i];
+            if (a == "--in" && i + 1 < argc)
+                in_dir = argv[++i];
+            else if (a == "--out" && i + 1 < argc)
+                out = argv[++i];
         }
         return cmd_report(in_dir, out);
     }

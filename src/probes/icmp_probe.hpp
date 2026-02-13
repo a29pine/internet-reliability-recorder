@@ -2,10 +2,11 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "../core/event_bus.hpp"
+#include "../core/fd.hpp"
 #include "../core/reactor.hpp"
 #include "../core/time_utils.hpp"
-#include "../core/fd.hpp"
 
 namespace irr {
 struct IcmpTarget {
@@ -18,7 +19,9 @@ struct IcmpTarget {
 class IcmpProbe {
    public:
     IcmpProbe(EventBus& bus, const std::string& run_id);
-    bool can_run() const { return can_run_; }
+    bool can_run() const {
+        return can_run_;
+    }
     void tick(Reactor& r, const std::vector<IcmpTarget>& targets);
     void sweep_timeouts();
 

@@ -1,11 +1,14 @@
 #include "pmtu_probe.hpp"
+
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <vector>
+
 #include <cerrno>
+#include <vector>
+
 #include "../core/logger.hpp"
 
 namespace irr {
@@ -26,10 +29,14 @@ void PmtuProbe::tick(const std::vector<PmtuTarget>& targets) {
             }
         }
         std::string category;
-        if (discovered == 0) category = "emsgsize";
-        else if (successes >= 1 && attempts <= 2) category = "confidence_high";
-        else if (successes >= 1 && attempts <= 4) category = "confidence_medium";
-        else category = "confidence_low";
+        if (discovered == 0)
+            category = "emsgsize";
+        else if (successes >= 1 && attempts <= 2)
+            category = "confidence_high";
+        else if (successes >= 1 && attempts <= 4)
+            category = "confidence_medium";
+        else
+            category = "confidence_low";
 
         Event ev;
         ev.run_id = run_id_;
@@ -53,7 +60,8 @@ bool PmtuProbe::probe_target(const PmtuTarget& t, int size, int& discovered) {
     hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_DGRAM;
     addrinfo* res = nullptr;
-    if (getaddrinfo(t.host.c_str(), std::to_string(t.port).c_str(), &hints, &res) != 0 || !res) return false;
+    if (getaddrinfo(t.host.c_str(), std::to_string(t.port).c_str(), &hints, &res) != 0 || !res)
+        return false;
     int fd = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (fd < 0) {
         freeaddrinfo(res);

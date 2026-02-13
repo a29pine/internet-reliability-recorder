@@ -1,10 +1,12 @@
 #include "tcp_connect.hpp"
+
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netdb.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #include "../core/logger.hpp"
 
 namespace irr {
@@ -34,8 +36,9 @@ void TcpConnectProbe::new_attempt(const TcpTarget& t) {
     addrinfo* res = nullptr;
     std::string port = std::to_string(t.port);
     if (getaddrinfo(t.host.c_str(), port.c_str(), &hints, &res) != 0 || !res) {
-        Event ev{run_id_, monotonic_ns(), wall_time_iso8601(), "probe.tcp.connect",
-                 t.name, t.host, "unknown", t.interval_ms, t.timeout_ms, false, 0.0, "dns_failure"};
+        Event ev{run_id_, monotonic_ns(), wall_time_iso8601(), "probe.tcp.connect", t.name,
+                 t.host,  "unknown",      t.interval_ms,       t.timeout_ms,        false,
+                 0.0,     "dns_failure"};
         bus_.emit(ev);
         return;
     }
@@ -48,8 +51,18 @@ void TcpConnectProbe::new_attempt(const TcpTarget& t) {
     if (::connect(fd, res->ai_addr, res->ai_addrlen) < 0 && errno != EINPROGRESS) {
         ::close(fd);
         freeaddrinfo(res);
-        Event ev{run_id_, monotonic_ns(), wall_time_iso8601(), "probe.tcp.connect",
-                 t.name, t.host, "unknown", t.interval_ms, t.timeout_ms, false, 0.0, "connect_immediate_fail"};
+        Event ev{run_id_,
+                 monotonic_ns(),
+                 wall_time_iso8601(),
+                 "probe.tcp.connect",
+                 t.name,
+                 t.host,
+                 "unknown",
+                 t.interval_ms,
+                 t.timeout_ms,
+                 false,
+                 0.0,
+                 "connect_immediate_fail"};
         bus_.emit(ev);
         return;
     }
@@ -61,8 +74,13 @@ void TcpConnectProbe::new_attempt(const TcpTarget& t) {
     } else {
         std::snprintf(ipbuf, sizeof(ipbuf), "unknown");
     }
-    Attempt a{fd, monotonic_ns(), t.name, ipbuf, res->ai_family == AF_INET6 ? "inet6" : "inet",
-              t.interval_ms, t.timeout_ms};
+    Attempt a{fd,
+              monotonic_ns(),
+              t.name,
+              ipbuf,
+              res->ai_family == AF_INET6 ? "inet6" : "inet",
+              t.interval_ms,
+              t.timeout_ms};
     inflight_[fd] = a;
     freeaddrinfo(res);
     reactor_->add_fd(fd, EPOLLOUT | EPOLLERR, [this, fd](uint32_t ev) { handle_event(fd, ev); });
@@ -77,9 +95,17 @@ void TcpConnectProbe::handle_event(int fd, uint32_t events) {
     ::getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len);
     double ms = (monotonic_ns() - it->second.start_ns) / 1e6;
     bool ok = (err == 0);
-    Event ev{run_id_, monotonic_ns(), wall_time_iso8601(), "probe.tcp.connect",
-             it->second.name, it->second.ip, it->second.family,
-             it->second.interval_ms, it->second.timeout_ms, ok, ms,
+    Event ev{run_id_,
+             monotonic_ns(),
+             wall_time_iso8601(),
+             "probe.tcp.connect",
+             it->second.name,
+             it->second.ip,
+             it->second.family,
+             it->second.interval_ms,
+             it->second.timeout_ms,
+             ok,
+             ms,
              ok ? "" : std::string("so_error_") + std::to_string(err)};
     bus_.emit(ev);
     reactor_->del_fd(fd);

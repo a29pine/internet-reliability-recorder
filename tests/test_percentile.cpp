@@ -1,5 +1,6 @@
 #include <cassert>
 #include <vector>
+
 #include "../src/util/percentile.hpp"
 
 int main() {

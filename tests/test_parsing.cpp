@@ -1,4 +1,5 @@
 #include <cassert>
+
 #include "../src/report/report_gen.hpp"
 
 int main() {

@@ -1,12 +1,15 @@
 #include "icmp_probe.hpp"
+
 #include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <netinet/ip_icmp.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+
 #include <cerrno>
 #include <cstring>
+
 #include "../core/logger.hpp"
 
 namespace irr {
@@ -19,7 +22,7 @@ uint16_t csum(const uint16_t* data, size_t len) {
     sum += (sum >> 16);
     return static_cast<uint16_t>(~sum);
 }
-}
+}  // namespace
 
 IcmpProbe::IcmpProbe(EventBus& bus, const std::string& run_id) : bus_(bus), run_id_(run_id) {
     int fd = ::socket(AF_INET, SOCK_RAW | SOCK_NONBLOCK, IPPROTO_ICMP);

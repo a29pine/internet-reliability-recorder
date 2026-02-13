@@ -8,10 +8,14 @@ enum class LogLevel { DEBUG, INFO, WARN, ERROR };
 
 inline const char* level_name(LogLevel lvl) {
     switch (lvl) {
-        case LogLevel::DEBUG: return "DEBUG";
-        case LogLevel::INFO: return "INFO";
-        case LogLevel::WARN: return "WARN";
-        case LogLevel::ERROR: return "ERROR";
+        case LogLevel::DEBUG:
+            return "DEBUG";
+        case LogLevel::INFO:
+            return "INFO";
+        case LogLevel::WARN:
+            return "WARN";
+        case LogLevel::ERROR:
+            return "ERROR";
     }
     return "?";
 }

@@ -1,8 +1,8 @@
 #pragma once
+#include <cstdint>
 #include <functional>
 #include <string>
 #include <vector>
-#include <cstdint>
 
 namespace irr {
 struct Event {
@@ -28,7 +28,9 @@ class EventSink {
 
 class EventBus {
    public:
-    void add_sink(EventSink* sink) { sinks_.push_back(sink); }
+    void add_sink(EventSink* sink) {
+        sinks_.push_back(sink);
+    }
     void emit(const Event& ev) {
         for (auto* s : sinks_) s->on_event(ev);
     }

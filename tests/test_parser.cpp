@@ -1,10 +1,13 @@
-#include <string>
-#include <fstream>
 #include <filesystem>
+#include <fstream>
+#include <string>
+
 #include "../src/report/report_gen.hpp"
 
 int main() {
-    std::string line = "{\"type\":\"probe.tcp.connect\",\"target\":{\"name\":\"t\"},\"result\":{\"ok\":true,\"metric_ms\":12.5}}";
+    std::string line =
+        "{\"type\":\"probe.tcp.connect\",\"target\":{\"name\":\"t\"},\"result\":{\"ok\":true,"
+        "\"metric_ms\":12.5}}";
     // use internal parser by calling generate_report on temp file
     std::string dir = "/tmp/irr_parser_test";
     std::filesystem::create_directories(dir);

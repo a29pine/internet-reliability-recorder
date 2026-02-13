@@ -1,14 +1,17 @@
 #include "dns_probe.hpp"
+
 #include <arpa/inet.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <fcntl.h>
+
 #include <cerrno>
 #include <cstring>
 #include <random>
+
 #include "../core/logger.hpp"
 
 namespace irr {
@@ -21,10 +24,12 @@ uint16_t make_id() {
 std::vector<uint8_t> build_query(uint16_t id, const std::string& qname) {
     std::vector<uint8_t> buf;
     buf.resize(12);  // header
-    buf[0] = id >> 8; buf[1] = id & 0xff;
-    buf[2] = 0x01;   // recursion desired
+    buf[0] = id >> 8;
+    buf[1] = id & 0xff;
+    buf[2] = 0x01;  // recursion desired
     buf[3] = 0x00;
-    buf[4] = 0x00; buf[5] = 0x01;  // QDCOUNT=1
+    buf[4] = 0x00;
+    buf[5] = 0x01;  // QDCOUNT=1
     buf[6] = buf[7] = buf[8] = buf[9] = buf[10] = buf[11] = 0;
     // qname labels
     size_t pos = 12;
@@ -38,8 +43,10 @@ std::vector<uint8_t> build_query(uint16_t id, const std::string& qname) {
         start = dot + 1;
     }
     buf.push_back(0);  // end of name
-    buf.push_back(0); buf.push_back(1);  // QTYPE A
-    buf.push_back(0); buf.push_back(1);  // QCLASS IN
+    buf.push_back(0);
+    buf.push_back(1);  // QTYPE A
+    buf.push_back(0);
+    buf.push_back(1);  // QCLASS IN
     return buf;
 }
 
@@ -47,7 +54,7 @@ int rcode_from_response(const uint8_t* data, size_t len) {
     if (len < 12) return -1;
     return data[3] & 0x0F;
 }
-}
+}  // namespace
 
 DnsProbe::DnsProbe(EventBus& bus, const std::string& run_id) : bus_(bus), run_id_(run_id) {}
 
@@ -74,10 +81,12 @@ void DnsProbe::send_udp_query(Reactor& r, const DnsTarget& t) {
     }
     uint16_t id = make_id();
     auto pkt = build_query(id, t.qname);
-    ssize_t n = ::sendto(fd, pkt.data(), pkt.size(), 0, reinterpret_cast<sockaddr*>(&sa), sizeof(sa));
+    ssize_t n =
+        ::sendto(fd, pkt.data(), pkt.size(), 0, reinterpret_cast<sockaddr*>(&sa), sizeof(sa));
     if (n < 0) {
         ::close(fd);
-        emit_event({fd, id, monotonic_ns(), t.name, t.qname, t.timeout_ms}, false, 0.0, "send_fail");
+        emit_event({fd, id, monotonic_ns(), t.name, t.qname, t.timeout_ms}, false, 0.0,
+                   "send_fail");
         return;
     }
     Attempt a{fd, id, monotonic_ns(), t.name, t.qname, t.timeout_ms};
@@ -118,7 +127,8 @@ void DnsProbe::sweep_timeouts() {
                 // attempt TCP fallback synchronously within timeout window
                 fallback_ok = tcp_fallback({a.target_name, a.qname, a.timeout_ms, a.timeout_ms}, a);
             }
-            emit_event(a, fallback_ok, elapsed_ms, fallback_ok ? "tcp_fallback_success" : "timeout");
+            emit_event(a, fallback_ok, elapsed_ms,
+                       fallback_ok ? "tcp_fallback_success" : "timeout");
             reactor_->del_fd(it->first);
             ::close(it->first);
             it = inflight_.erase(it);
@@ -175,7 +185,8 @@ bool DnsProbe::tcp_fallback(const DnsTarget& t, Attempt& a) {
     return rcode == 0;
 }
 
-void DnsProbe::emit_event(const Attempt& a, bool ok, double ms, const std::string& category, int rcode) {
+void DnsProbe::emit_event(const Attempt& a, bool ok, double ms, const std::string& category,
+                          int rcode) {
     Event ev;
     ev.run_id = run_id_;
     ev.ts_monotonic_ns = monotonic_ns();
@@ -188,8 +199,10 @@ void DnsProbe::emit_event(const Attempt& a, bool ok, double ms, const std::strin
     ev.timeout_ms = a.timeout_ms;
     ev.ok = ok;
     ev.metric_ms = ms;
-    if (rcode >= 0) ev.error_category = ok ? "" : (category + "_rcode_" + std::to_string(rcode));
-    else ev.error_category = category;
+    if (rcode >= 0)
+        ev.error_category = ok ? "" : (category + "_rcode_" + std::to_string(rcode));
+    else
+        ev.error_category = category;
     bus_.emit(ev);
 }
 }  // namespace irr

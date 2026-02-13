@@ -1,7 +1,8 @@
 #pragma once
+#include <cstdint>
 #include <functional>
 #include <unordered_map>
-#include <cstdint>
+
 #include "fd.hpp"
 
 namespace irr {
@@ -15,7 +16,9 @@ class Reactor {
     bool mod_fd(int fd, uint32_t events);
     void del_fd(int fd);
     void loop_once(int timeout_ms);
-    int fd() const { return epoll_fd_; }
+    int fd() const {
+        return epoll_fd_;
+    }
 
    private:
     int epoll_fd_{-1};

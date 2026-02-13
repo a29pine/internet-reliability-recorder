@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+
 #include "../core/event_bus.hpp"
 #include "../core/reactor.hpp"
 #include "../core/time_utils.hpp"
@@ -42,7 +43,8 @@ class DnsProbe {
 
     void send_udp_query(Reactor& r, const DnsTarget& t);
     void handle_response(int fd);
-    void emit_event(const Attempt& a, bool ok, double ms, const std::string& category, int rcode = -1);
+    void emit_event(const Attempt& a, bool ok, double ms, const std::string& category,
+                    int rcode = -1);
     bool tcp_fallback(const DnsTarget& t, Attempt& a);
 };
 }  // namespace irr
