@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Internet Reliability Recorder</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #0c1116;
+      --panel: #111822;
+      --accent: #4fd1c5;
+      --accent-2: #8cc8ff;
+      --text: #e8eef5;
+      --muted: #9fb3c8;
+      --border: #1f2a3a;
+      --code: #0b1624;
+      --sidebar: #0d141d;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(120% 120% at 20% 20%, #112135, #0b131c 50%, #090f15 70%);
+      color: var(--text);
+      line-height: 1.6;
+      display: flex;
+      min-height: 100vh;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-2); }
+    h1 { margin: 0 0 12px; font-size: 32px; letter-spacing: 0.5px; }
+    h2 { margin: 28px 0 12px; font-size: 22px; }
+    h3 { margin: 20px 0 8px; font-size: 18px; }
+    p { margin: 0 0 12px; color: var(--muted); }
+    ul { margin: 0 0 12px 20px; color: var(--muted); }
+    pre, code {
+      font-family: "JetBrains Mono", "SFMono-Regular", Menlo, monospace;
+      background: var(--code);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    pre { padding: 12px; overflow-x: auto; }
+    .btn {
+      display: inline-block;
+      padding: 6px 10px;
+      margin-left: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: rgba(79, 209, 197, 0.12);
+      color: var(--accent);
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: rgba(140, 200, 255, 0.16); color: var(--accent-2); }
+
+    .sidebar {
+      width: 260px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      padding: 24px 18px 32px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+    .nav-title { font-weight: 700; color: var(--text); margin: 0 0 8px; }
+    .nav-desc { margin: 0 0 18px; color: var(--muted); }
+    .nav-section { margin-bottom: 18px; }
+    .nav-section h4 { margin: 0 0 8px; font-size: 14px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.6px; }
+    .nav-links { list-style: none; padding: 0; margin: 0; }
+    .nav-links li { margin: 6px 0; }
+
+    .page {
+      flex: 1;
+      min-width: 0;
+      padding: 0 20px 64px 20px;
+    }
+    header {
+      padding: 56px 24px 32px;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(79, 209, 197, 0.12), rgba(140, 200, 255, 0.16));
+      border-bottom: 1px solid var(--border);
+      border-left: 1px solid var(--border);
+      margin-left: 12px;
+      border-radius: 0 0 14px 14px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+    }
+    .layout { max-width: 1080px; margin: 0 auto; padding: 28px 0 0 0; }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+    }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(79, 209, 197, 0.16);
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      margin-right: 8px;
+    }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+
+    @media (max-width: 980px) {
+      body { flex-direction: column; }
+      .sidebar { position: relative; width: 100%; height: auto; border-right: none; border-bottom: 1px solid var(--border); }
+      .page { padding: 0 14px 48px 14px; }
+      header { margin-left: 0; border-left: none; }
+    }
+  </style>
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="nav-title">IRR</div>
+    <div class="nav-desc">Internet Reliability Recorder</div>
+    <div class="nav-section">
+      <h4>Navigation</h4>
+      <ul class="nav-links">
+        <li><a href="#quickstart">Quickstart</a></li>
+        <li><a href="#downloads">Downloads</a></li>
+        <li><a href="#capabilities">What it measures</a></li>
+        <li><a href="#usage">CLI usage</a></li>
+        <li><a href="#report">Report</a></li>
+        <li><a href="#targets">Defaults</a></li>
+        <li><a href="#diagnostics">Diagnostics</a></li>
+        <li><a href="#versioning">Versioning</a></li>
+        <li><a href="#issues">Issues</a></li>
+      </ul>
+    </div>
+    <div class="nav-section">
+      <h4>Repo</h4>
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <code>github.com/a29pine/internet-reliability-recorder</code>
+        <a class="btn" href="https://github.com/a29pine/internet-reliability-recorder" target="_blank" rel="noopener">Open</a>
+      </div>
+    </div>
+  </aside>
+
+  <div class="page">
+    <header>
+      <div class="pill">Linux-first</div>
+      <div class="pill">TCP/DNS/ICMP/PMTU</div>
+      <div class="pill">JSONL + HTML report</div>
+      <h1>Internet Reliability Recorder</h1>
+      <p>Daemon + CLI that captures evidence-quality reliability incidents with TCP connect, DNS, ICMP (CAP_NET_RAW), PMTU ceilings, and netlink link/route changes.</p>
+    </header>
+
+    <main class="layout">
+      <section class="card" id="quickstart">
+        <h2>Quickstart</h2>
+        <p>Build, run for 60s, and render a report.</p>
+        <pre>./scripts/build.sh
+./build/irr run --duration 60 --out ./bundle --profile home --interval 1000
+./build/irr report --in ./bundle --out ./bundle/report.html</pre>
+        <p>Requires Linux, C++17 toolchain, CMake &ge; 3.15. ICMP probe requires <code>CAP_NET_RAW</code>.</p>
+      </section>
+
+      <section class="card" id="downloads">
+        <h2>Downloads</h2>
+        <div class="grid">
+          <div>
+            <h3>Release assets (v0.1.0)</h3>
+            <ul>
+              <li><a href="https://github.com/a29pine/internet-reliability-recorder/archive/refs/tags/v0.1.0.tar.gz" target="_blank" rel="noopener">Source tarball</a></li>
+              <li><a href="https://github.com/a29pine/internet-reliability-recorder/archive/refs/tags/v0.1.0.zip" target="_blank" rel="noopener">Source zip</a></li>
+              <li><a href="https://github.com/a29pine/internet-reliability-recorder/releases/download/v0.1.0/checksums.txt" target="_blank" rel="noopener">SHA256 checksums</a></li>
+            </ul>
+          </div>
+          <div>
+            <h3>Docs</h3>
+            <ul>
+              <li><a href="https://github.com/a29pine/internet-reliability-recorder/blob/main/README.md" target="_blank" rel="noopener">README</a></li>
+              <li><a href="https://github.com/a29pine/internet-reliability-recorder/blob/main/docs/raspi.md" target="_blank" rel="noopener">Router/SBC notes</a></li>
+              <li><a href="https://github.com/a29pine/internet-reliability-recorder/blob/main/docs/sample-report/report.html" target="_blank" rel="noopener">Sample report</a></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="capabilities">
+        <h2>What It Measures</h2>
+        <ul>
+          <li>TCP connect latency/loss to configured targets.</li>
+          <li>DNS UDP with TCP fallback; classifies rcode/timeouts.</li>
+          <li>ICMP echo RTT (when CAP_NET_RAW present) with timeout events.</li>
+          <li>PMTU ceilings via lightweight probes.</li>
+          <li>Netlink link/route change markers to correlate spikes.</li>
+        </ul>
+      </section>
+
+      <section class="card" id="usage">
+        <h2>CLI Usage</h2>
+        <h3>Run</h3>
+        <pre>./build/irr run \
+  --duration 600 \
+  --out ./bundle \
+  --profile home \
+  --interval 1000 \
+  [--no-dns] [--no-icmp] [--no-pmtu] [--no-netlink]</pre>
+        <h3>Report</h3>
+        <pre>./build/irr report --in ./bundle --out ./bundle/report.html</pre>
+        <h3>Doctor</h3>
+        <pre>./build/irr doctor</pre>
+        <p>Bundles contain <code>run.json</code> and <code>events.jsonl</code>; reports are self-contained HTML.</p>
+      </section>
+
+      <section class="card" id="report">
+        <h2>Report</h2>
+        <p>Parses JSONL, computes p50/p95/p99, loss%, per-target stats, and renders an SVG timeline for TCP connect. User-controlled strings are escaped to avoid injection when inspecting bundles.</p>
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <a class="btn" href="https://github.com/a29pine/internet-reliability-recorder/blob/main/docs/sample-report/report.html" target="_blank" rel="noopener">View sample</a>
+        </div>
+      </section>
+
+      <section class="card" id="targets">
+        <h2>Default Targets</h2>
+        <ul>
+          <li>Profile <code>home</code>: TCP to 1.1.1.1:443 and 8.8.8.8:443; DNS qname <code>example.com</code>.</li>
+          <li>ICMP inherits interval; PMTU targets reuse TCP hosts (UDP 33434).</li>
+          <li>Resolvers auto-detected from <code>/etc/resolv.conf</code>, fallback 1.1.1.1.</li>
+        </ul>
+      </section>
+
+      <section class="card" id="diagnostics">
+        <h2>Diagnostics</h2>
+        <ul>
+          <li><code>irr doctor</code> checks <code>/etc/resolv.conf</code> and <code>CAP_NET_RAW</code> availability.</li>
+          <li>Netlink monitor stamps link/route changes for correlation.</li>
+          <li>JSONL logging retains timestamps, target meta, and error categories.</li>
+        </ul>
+      </section>
+
+      <section class="card" id="versioning">
+        <h2>Versioning</h2>
+        <ul>
+          <li>Current: 0.1.0 (tag v0.1.0).</li>
+          <li>CI: format check (clang-format), lint (clang-tidy), Debug/Release build + ctest.</li>
+        </ul>
+      </section>
+
+      <section class="card" id="issues">
+        <h2>Report Issues</h2>
+        <p>Open an issue on GitHub with:</p>
+        <ul>
+          <li>What you ran (CLI flags) and platform/kernel.</li>
+          <li>Bundle or relevant excerpts of <code>events.jsonl</code> (if possible).</li>
+          <li>Network context (ISP/router, VPNs, captive portals).</li>
+        </ul>
+        <p><a href="https://github.com/a29pine/internet-reliability-recorder/issues" target="_blank" rel="noopener">File an issue</a></p>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
