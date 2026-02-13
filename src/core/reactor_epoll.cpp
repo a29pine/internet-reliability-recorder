@@ -15,7 +15,7 @@ Reactor::~Reactor() {
 }
 
 bool Reactor::add_fd(int fd, uint32_t events, const FdHandler& cb) {
-    struct epoll_event ev{};
+    struct epoll_event ev {};
     ev.events = events;
     ev.data.fd = fd;
     if (::epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, fd, &ev) < 0) return false;
@@ -24,7 +24,7 @@ bool Reactor::add_fd(int fd, uint32_t events, const FdHandler& cb) {
 }
 
 bool Reactor::mod_fd(int fd, uint32_t events) {
-    struct epoll_event ev{};
+    struct epoll_event ev {};
     ev.events = events;
     ev.data.fd = fd;
     return ::epoll_ctl(epoll_fd_, EPOLL_CTL_MOD, fd, &ev) == 0;
